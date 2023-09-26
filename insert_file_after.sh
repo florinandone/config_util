@@ -19,18 +19,31 @@ if [ ! -f "$file_to_insert" ]; then
     exit 1
 fi
 
-# Use awk to insert the content after the delimiter
-awk -v d="$delimiter" -v insert_file="$file_to_insert" '
+# Create temporary files for content before and after the delimiter
+before_delimiter_file=$(mktemp)
+after_delimiter_file=$(mktemp)
+
+# Use awk to process the main file
+awk -v d="$delimiter" -v before="$before_delimiter_file" -v after="$after_delimiter_file" '
     BEGIN { found = 0 }
-    /d/ {
-        print $0
-        if (!found) {
-            system("cat " insert_file)
-            found = 1
-        }
+    $0 ~ d {
+        found = 1
         next
     }
-    { print $0 }
-' "$main_file" > "$main_file.tmp" && mv "$main_file.tmp" "$main_file"
+    {
+        if (found == 0) {
+            print $0 >> before
+        } else {
+            print $0 >> after
+        }
+    }
+' "$main_file"
+
+# Concatenate content before, content to insert, and content after
+cat "$before_delimiter_file" "$file_to_insert" "$after_delimiter_file" > "$main_file.tmp"
+mv "$main_file.tmp" "$main_file"
+
+# Clean up temporary files
+rm -f "$before_delimiter_file" "$after_delimiter_file"
 
 echo "File '$file_to_insert' inserted into '$main_file' after the delimiter '$delimiter'."
