@@ -19,24 +19,18 @@ if [ ! -f "$file_to_insert" ]; then
     exit 1
 fi
 
-# Create a temporary file
-temp_file=$(mktemp)
-
-# Find the line number of the delimiter in the main file
-delimiter_line=$(grep -n "$delimiter" "$main_file" | cut -d: -f1)
-
-if [ -n "$delimiter_line" ]; then
-    # Insert the content of the file to insert after the delimiter line
-    head -n "$delimiter_line" "$main_file" > "$temp_file"
-    cat "$file_to_insert" >> "$temp_file"
-    tail -n +"$((delimiter_line + 2))" "$main_file" >> "$temp_file"
-else
-    # If the delimiter doesn't exist, append the content of the file to insert
-    cat "$main_file" > "$temp_file"
-    cat "$file_to_insert" >> "$temp_file"
-fi
-
-# Replace the main file with the temporary file
-mv "$temp_file" "$main_file"
+# Use awk to insert the content after the delimiter
+awk -v d="$delimiter" -v insert_file="$file_to_insert" '
+    BEGIN { found = 0 }
+    /d/ {
+        print $0
+        if (!found) {
+            system("cat " insert_file)
+            found = 1
+        }
+        next
+    }
+    { print $0 }
+' "$main_file" > "$main_file.tmp" && mv "$main_file.tmp" "$main_file"
 
 echo "File '$file_to_insert' inserted into '$main_file' after the delimiter '$delimiter'."
