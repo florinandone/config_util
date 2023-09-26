@@ -20,10 +20,29 @@ fi
 # Create a temporary file
 temp_file=$(mktemp)
 
-# Use sed to delete lines between the start and end delimiters containing spaces
-sed "/$start_delimiter/,/$end_delimiter/ {
-    /.*[[:space:]].*/d
-}" "$input_file" > "$temp_file"
+# Initialize a flag to determine if lines should be deleted
+delete_lines=0
+
+# Use a while loop to process the input file line by line
+while IFS= read -r line; do
+    if [[ $line == *"$start_delimiter"* ]]; then
+        # Set the flag to start deleting lines
+        delete_lines=1
+    fi
+
+    if [ $delete_lines -eq 0 ]; then
+        # Preserve lines before the start delimiter
+        echo "$line" >> "$temp_file"
+    else
+        if [[ $line == *"$end_delimiter"* ]]; then
+            # Reset the flag when the end delimiter is encountered
+            delete_lines=0
+        elif [[ $line != *" "* ]]; then
+            # Preserve lines without spaces between the delimiters
+            echo "$line" >> "$temp_file"
+        fi
+    fi
+done < "$input_file"
 
 # Replace the original file with the modified content
 mv "$temp_file" "$input_file"
