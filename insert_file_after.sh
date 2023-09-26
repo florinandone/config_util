@@ -29,7 +29,7 @@ if [ -n "$delimiter_line" ]; then
     # Insert the content of the file to insert after the delimiter line
     head -n "$delimiter_line" "$main_file" > "$temp_file"
     cat "$file_to_insert" >> "$temp_file"
-    tail -n +"$((delimiter_line + 1))" "$main_file" >> "$temp_file"
+    tail -n +"$((delimiter_line + 2))" "$main_file" >> "$temp_file"
 else
     # If the delimiter doesn't exist, append the content of the file to insert
     cat "$main_file" > "$temp_file"
