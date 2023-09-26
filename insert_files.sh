@@ -17,15 +17,21 @@ if [ ! -f "$main_file" ]; then
     exit 1
 fi
 
+# Get the directory of the main file
+main_dir=$(dirname "$main_file")
+
 # Iterate through the list of files and insert their content after the delimiter
 for file in "$@"; do
-    if [ ! -f "$file" ]; then
-        echo "Warning: File '$file' does not exist. Skipping."
+    # Construct the full path for the extra files
+    extra_file="${main_dir}/${file}"
+    
+    if [ ! -f "$extra_file" ]; then
+        echo "Warning: File '$extra_file' does not exist. Skipping."
     else
         # Insert the content of the file after the delimiter in the main file
-        awk -v delim="$delimiter" '1; $0 == delim {while((getline line < ARGV[1]) > 0) print line; close(ARGV[1])}' "$file" "$main_file" > temp_file
+        awk -v delim="$delimiter" '1; $0 == delim {while((getline line < ARGV[1]) > 0) print line; close(ARGV[1])}' "$extra_file" "$main_file" > temp_file
         mv temp_file "$main_file"
-        echo "Content from '$file' inserted after the delimiter in '$main_file'."
+        echo "Content from '$extra_file' inserted after the delimiter in '$main_file'."
     fi
 done
 
