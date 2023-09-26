@@ -13,11 +13,12 @@ if [ ! -f "$filename" ]; then
     exit 1
 fi
 
-# Extract the file extension
+# Extract the folder path and file extension
+file_path="$(dirname "$filename")"
 file_extension="${filename##*.}"
 
 # Create the output filename using the word and the original extension
-output_filename="${word}.${file_extension}"
+output_filename="${file_path}/${word}.${file_extension}"
 
 # Use grep to search for the word in the file and redirect the output to the output file
 grep "$word" "$filename" > "$output_filename"
