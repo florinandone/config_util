@@ -1,22 +1,31 @@
 #!/bin/bash
 
-if [ $# -ne 3 ]; then
-    echo "Usage: $0 <filename> <searchword> <replaceword>"
+# Check if all required arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 input_file old_word new_word"
     exit 1
 fi
 
-filename="$1"
-searchword="$2"
-replaceword="$3"
+# Assign command-line arguments to variables
+input_file="$1"
+old_word="$2"
+new_word="$3"
 
-# Call the search_and_save.sh script to create the new file
-./search_and_save.sh "$filename" "$searchword"
-
-# Check if the search_and_save.sh script was successful
-if [ $? -eq 0 ]; then
-    # Replace the searchword with replaceword in the new file
-    sed -i "s/$searchword/$replaceword/g" "${searchword}.${filename##*.}"
-    echo "Word '$searchword' replaced with '$replaceword' in the new file."
-else
-    echo "Error occurred while creating the new file with searchword."
+# Check if the input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: Input file '$input_file' does not exist."
+    exit 1
 fi
+
+# Extract the directory and extension from the input file
+directory=$(dirname "$input_file")
+extension="${input_file##*.}"
+
+# Create the output filename using the new word and the same extension
+output_file="${directory}/${new_word}.${extension}"
+
+# Use grep and cat to replace the word and save it to the output file
+cat "$input_file" | grep -o '\w*\|[^[:space:]]*' | sed "s/$old_word/$new_word/g" > "$output_file"
+
+# Output confirmation message
+echo "Word '$old_word' replaced with '$new_word' in $input_file and saved as $output_file"
