@@ -27,11 +27,11 @@ fi
 temp_file=$(mktemp)
 
 # Use awk to insert the content of the insert file after the delimiter in the main file
-awk -v delim="$delimiter" '
+awk -v delim="$delimiter" -v insert="$(cat "$insert_file")" '
     BEGIN { found = 0 }
-    $0 == delim { found = 1; print; system("cat insert_file"); next }
+    $0 == delim { found = 1; print; print insert; next }
     found { print; }
-' insert_file="$insert_file" "$main_file" > "$temp_file"
+' "$main_file" > "$temp_file"
 
 # Replace the original main file with the modified content
 mv "$temp_file" "$main_file"
