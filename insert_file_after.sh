@@ -27,8 +27,12 @@ line_number=$(grep -n "$delimiter" "$main_file" | head -n 1 | cut -d ":" -f 1)
 # Create a temporary file for the updated content
 temp_file="temp_main.txt"
 
-# Use awk to insert the content of the insert file after the delimiter line
-awk -v insert_content="$(cat "$insert_file")" -v line_number="$line_number" 'NR==line_number+1 {print insert_content} {print}' "$main_file" > "$temp_file"
+# Split the main file into two parts: before and after the delimiter
+head -n "$line_number" "$main_file" > "$temp_file"
+tail -n +$((line_number + 1)) "$main_file" >> "$temp_file"
+
+# Append the content of the insert file after the delimiter
+cat "$insert_file" >> "$temp_file"
 
 # Replace the main file with the temporary file
 mv "$temp_file" "$main_file"
