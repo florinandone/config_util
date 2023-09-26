@@ -18,7 +18,7 @@ if [ ! -f "$input_file" ]; then
 fi
 
 # Use sed to replace the word in the input file and save it in place
-sed -i "s/$old_word/$new_word/g" "$input_file"
+sed -i "s/\b$old_word\b/$new_word/g" "$input_file"
 
 # Output confirmation message
 echo "Word '$old_word' replaced with '$new_word' in $input_file"
