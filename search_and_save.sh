@@ -21,7 +21,7 @@ file_extension="${filename##*.}"
 output_filename="${file_path}/${word}.${file_extension}"
 
 # Use grep to search for the word in the file and redirect the output to the output file
-grep "$word" "$filename" > "$output_filename"
+grep -F "$word" "$filename" > "$output_filename"
 
 if [ $? -eq 0 ]; then
     echo "Content containing '$word' saved to '$output_filename'."
