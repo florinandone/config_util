@@ -1,35 +1,33 @@
 #!/bin/bash
 
-# Check if all required arguments are provided
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 main_file delimiter insert_file"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <main_file> <insert_file> <delimiter>"
     exit 1
 fi
 
-# Assign command-line arguments to variables
-main_file="$1"
-delimiter="$2"
-insert_file="$3"
+main_file="$1"      # The file where you want to insert content
+insert_file="$2"    # The file you want to insert
+delimiter="$3"      # The delimiter
 
 # Check if the main file exists
-if [ ! -f "$main_file" ]; then
-    echo "Error: Main file '$main_file' does not exist."
+if [ ! -e "$main_file" ]; then
+    echo "Main file '$main_file' does not exist."
     exit 1
 fi
 
-# Check if the insert file exists
-if [ ! -f "$insert_file" ]; then
-    echo "Error: Insert file '$insert_file' does not exist."
+# Check if the delimiter is found in the main file
+if ! grep -q "$delimiter" "$main_file"; then
+    echo "Delimiter '$delimiter' not found in the main file."
     exit 1
 fi
 
-# Create a temporary file for storing the modified content
-temp_file=$(mktemp)
+# Find the line number of the first occurrence of the delimiter in the main file
+line_number=$(grep -n "$delimiter" "$main_file" | head -n 1 | cut -d ":" -f 1)
 
-# Use sed to insert the content of the insert file after the delimiter in the main file
-sed -e "/$delimiter/ r $insert_file" "$main_file" > "$temp_file"
+# Use awk to insert the content of the insert file after the delimiter line
+awk -v insert_content="$(cat "$insert_file")" -v line_number="$line_number" 'NR==line_number+1 {print insert_content} {print}' "$main_file" > temp_main.txt
 
-# Replace the original main file with the modified content
-mv "$temp_file" "$main_file"
+# Rename the temporary file back to the main file
+mv temp_main.txt "$main_file"
 
-echo "Content from '$insert_file' inserted after the delimiter in '$main_file'."
+echo "Content inserted successfully."
