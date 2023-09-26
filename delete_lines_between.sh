@@ -28,8 +28,16 @@ if [ -z "$start_line" ] || [ -z "$end_line" ]; then
     exit 1
 fi
 
-# Use head and tail to extract lines before and after the specified range
+# Copy lines before the start delimiter to the temporary file
 head -n "$((start_line - 1))" "$input_file" > "$temp_file"
+
+# Add the start delimiter to the temporary file
+echo "$start_delimiter" >> "$temp_file"
+
+# Add the end delimiter to the temporary file
+echo "$end_delimiter" >> "$temp_file"
+
+# Copy lines after the end delimiter to the temporary file
 tail -n "+$((end_line + 1))" "$input_file" >> "$temp_file"
 
 # Replace the input file with the temporary file
