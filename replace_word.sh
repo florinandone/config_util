@@ -1,24 +1,27 @@
 #!/bin/bash
 
-# Check if all required arguments are provided
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 input_file old_word new_word"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <input_file> <old_word> <new_word>"
     exit 1
 fi
 
-# Assign command-line arguments to variables
 input_file="$1"
 old_word="$2"
 new_word="$3"
 
-# Check if the input file exists
 if [ ! -f "$input_file" ]; then
-    echo "Error: Input file '$input_file' does not exist."
+    echo "The input file '$input_file' does not exist."
     exit 1
 fi
 
-# Use sed to replace the word in the input file and save it in place
-sed -i "s/\b$old_word\b/$new_word/g" "$input_file"
+# Extract the folder path and file extension
+file_path="$(dirname "$input_file")"
+file_extension="${input_file##*.}"
 
-# Output confirmation message
-echo "Word '$old_word' replaced with '$new_word' in $input_file"
+# Create the output filename using the same name as the input file
+output_file="${file_path}/${new_word}.${file_extension}"
+
+# Use sed to replace old_word with new_word in the input file and save it to the output file
+sed "s/$old_word/$new_word/g" "$input_file" > "$output_file"
+
+echo "Word '$old_word' replaced with '$new_word' in the new file '${output_file}'."
