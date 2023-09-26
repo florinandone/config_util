@@ -23,15 +23,11 @@ if [ ! -f "$insert_file" ]; then
     exit 1
 fi
 
-# Create a temporary file
+# Create a temporary file for storing the modified content
 temp_file=$(mktemp)
 
-# Use awk to insert the content of the insert file after the delimiter in the main file
-awk -v delim="$delimiter" -v insert="$(cat "$insert_file")" '
-    BEGIN { found = 0 }
-    $0 == delim { found = 1; print; print insert; next }
-    found { print; }
-' "$main_file" > "$temp_file"
+# Use sed to insert the content of the insert file after the delimiter in the main file
+sed -e "/$delimiter/ r $insert_file" "$main_file" > "$temp_file"
 
 # Replace the original main file with the modified content
 mv "$temp_file" "$main_file"
