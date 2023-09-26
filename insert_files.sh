@@ -39,9 +39,17 @@ for extra_file in "$@"; do
 done
 
 # Use awk to process the main file and insert the content of the extra files after the delimiter
-awk -v delim="$delimiter" '
-    # Initialize variables
+awk -v delim="$delimiter" -v files_to_insert="${inserted_files[*]}" '
     BEGIN { inside_block = 0; file_index = 1 }
+    
+    # Split the files_to_insert variable into an array
+    function split_files(array, str) {
+        n = split(str, a)
+        for (i = 1; i <= n; i++) {
+            array[i] = a[i]
+        }
+        return n
+    }
 
     # Process each line of the input file
     {
@@ -52,18 +60,18 @@ awk -v delim="$delimiter" '
         }
 
         # If inside the delimiter block, insert the content of the next file
-        if (inside_block == 1 && file_index <= length(files_to_insert)) {
-            while ((getline line < files_to_insert[file_index]) > 0) {
+        if (inside_block == 1 && file_index <= split_files(files_array, files_to_insert)) {
+            while ((getline line < files_array[file_index]) > 0) {
                 print line
             }
-            close(files_to_insert[file_index])
+            close(files_array[file_index])
             file_index++
         }
         
         # Print the current line
         print $0
     }
-' files_to_insert="${inserted_files[*]}" "$main_file" > "$temp_file"
+' "$main_file" > "$temp_file"
 
 # Replace the original main file with the modified content
 mv "$temp_file" "$main_file"
