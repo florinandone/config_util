@@ -1,49 +1,39 @@
 #!/bin/bash
 
-if [ $# -ne 3 ]; then
-    echo "Usage: $0 <main_file> <file_to_insert> <delimiter>"
+# Check if all required arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 main_file delimiter insert_file"
     exit 1
 fi
 
+# Assign command-line arguments to variables
 main_file="$1"
-file_to_insert="$2"
-delimiter="$3"
+delimiter="$2"
+insert_file="$3"
 
+# Check if the main file exists
 if [ ! -f "$main_file" ]; then
-    echo "The main file '$main_file' does not exist."
+    echo "Error: Main file '$main_file' does not exist."
     exit 1
 fi
 
-if [ ! -f "$file_to_insert" ]; then
-    echo "The file to insert '$file_to_insert' does not exist."
+# Check if the insert file exists
+if [ ! -f "$insert_file" ]; then
+    echo "Error: Insert file '$insert_file' does not exist."
     exit 1
 fi
 
-# Create temporary files for content before and after the delimiter
-before_delimiter_file=$(mktemp)
-after_delimiter_file=$(mktemp)
+# Create a temporary file
+temp_file=$(mktemp)
 
-# Use awk to process the main file
-awk -v d="$delimiter" -v before="$before_delimiter_file" -v after="$after_delimiter_file" '
+# Use awk to insert the content of the insert file after the delimiter in the main file
+awk -v delim="$delimiter" '
     BEGIN { found = 0 }
-    $0 ~ d {
-        found = 1
-        next
-    }
-    {
-        if (found == 0) {
-            print $0 >> before
-        } else {
-            print $0 >> after
-        }
-    }
-' "$main_file"
+    $0 == delim { found = 1; print; system("cat insert_file"); next }
+    found { print; }
+' insert_file="$insert_file" "$main_file" > "$temp_file"
 
-# Concatenate content before, content to insert, and content after
-cat "$before_delimiter_file" "$file_to_insert" "$after_delimiter_file" > "$main_file.tmp"
-mv "$main_file.tmp" "$main_file"
+# Replace the original main file with the modified content
+mv "$temp_file" "$main_file"
 
-# Clean up temporary files
-rm -f "$before_delimiter_file" "$after_delimiter_file"
-
-echo "File '$file_to_insert' inserted into '$main_file' after the delimiter '$delimiter'."
+echo "Content from '$insert_file' inserted after the delimiter in '$main_file'."
