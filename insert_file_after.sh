@@ -24,10 +24,13 @@ fi
 # Find the line number of the first occurrence of the delimiter in the main file
 line_number=$(grep -n "$delimiter" "$main_file" | head -n 1 | cut -d ":" -f 1)
 
-# Use awk to insert the content of the insert file after the delimiter line
-awk -v insert_content="$(cat "$insert_file")" -v line_number="$line_number" 'NR==line_number+1 {print insert_content} {print}' "$main_file" > temp_main.txt
+# Create a temporary file for the updated content
+temp_file="temp_main.txt"
 
-# Rename the temporary file back to the main file
-mv temp_main.txt "$main_file"
+# Use awk to insert the content of the insert file after the delimiter line
+awk -v insert_content="$(cat "$insert_file")" -v line_number="$line_number" 'NR==line_number+1 {print insert_content} {print}' "$main_file" > "$temp_file"
+
+# Replace the main file with the temporary file
+mv "$temp_file" "$main_file"
 
 echo "Content inserted successfully."
