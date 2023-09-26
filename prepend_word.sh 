@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Check if all required arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 input_file word_to_find word_to_prepend"
+    exit 1
+fi
+
+# Assign command-line arguments to variables
+input_file="$1"
+word_to_find="$2"
+word_to_prepend="$3"
+
+# Check if the input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: Input file '$input_file' does not exist."
+    exit 1
+fi
+
+# Create a temporary file
+temp_file=$(mktemp)
+
+# Use awk to prepend the word to lines containing the specified word
+awk -v find="$word_to_find" -v prepend="$word_to_prepend" 'index($0, find) { $0 = prepend $0 } 1' "$input_file" > "$temp_file"
+
+# Replace the original file with the modified content
+mv "$temp_file" "$input_file"
+
+# Output confirmation message
+echo "Word '$word_to_prepend' appended to lines containing '$word_to_find' in $input_file"
