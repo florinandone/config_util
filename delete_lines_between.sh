@@ -21,7 +21,9 @@ fi
 temp_file=$(mktemp)
 
 # Use sed to delete lines between the start and end delimiters containing spaces
-sed "/$start_delimiter/,/$end_delimiter/ s/.*[[:space:]].*//" "$input_file" > "$temp_file"
+sed "/$start_delimiter/,/$end_delimiter/ {
+    /.*[[:space:]].*/d
+}" "$input_file" > "$temp_file"
 
 # Replace the original file with the modified content
 mv "$temp_file" "$input_file"
